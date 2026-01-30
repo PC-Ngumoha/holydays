@@ -52,8 +52,12 @@ main {
   display: flex;
 }
 
+
+/* SIDE BAR */
+
 aside {
   flex: 2;
+  border-right: 1px solid var(--color-border);
 }
 
 aside header {
@@ -69,8 +73,93 @@ aside header {
   padding: 1.2rem 0;
 }
 
+.select-country {
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  display: flex;
+}
+
+.select-country select {
+  border: none;
+  padding: 2px;
+  flex: 1;
+  text-align: center;
+  color: var(--color-heading-text);
+  letter-spacing: .25rem;
+}
+
+.select-country select:focus {
+  outline: none;
+}
+
+.holiday-list {
+  display: flex;
+  flex-direction: column;
+  height: 80vh;
+  width: 100%;
+  padding: 1.8rem;
+  overflow: auto;
+}
+
+.holiday-list li {
+  padding: 1.8rem 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: start;
+  gap: 1rem;
+  color: var(--color-heading-text);
+  border-bottom: 1px solid var(--color-border);
+  font-size: 1.4rem;
+}
+
+.holiday-list li:last-of-type {
+  border-bottom: none;
+}
+
+.holiday-list li:hover {
+  background-color: var(--color-bg-accent);
+  transition: all .2s ease-in-out;
+}
+
+.holiday-list h3 {
+  color: var(--color-regular-text);
+  letter-spacing: .15rem;
+}
+
+/* MAIN CONTENT */
+
 article {
   flex: 5;
-  background: var(--color-bg-accent);
+  padding: 2.3rem 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+article h1 {
+  letter-spacing: .2rem;
+  color: var(--color-heading-text);
+  margin: 1rem 0;
+}
+
+article .date {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  gap: 1rem;
+}
+
+article p {
+  word-spacing: .15rem;
+  line-height: 3rem;
+}
+
+article img {
+  width: 100%;
+  height: 50rem;
+  object-fit: auto;
+  border-radius: 1rem;
 }
 
