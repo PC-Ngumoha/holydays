@@ -1,3 +1,6 @@
+import { useState } from 'react';
+import Countries from './countries.json';
+
 const initialHolidays = [
   {
     date: '2026-01-01',
@@ -111,22 +114,32 @@ const initialHolidays = [
   },
 ];
 
+// console.log(Countries.map((country) => country.country));
+
 export default function App() {
+  const [selectedCountry, setSelectedCountry] = useState(null);
+
+  function handleSelectCountry(evt) {
+    // setSelectedCountry(evt.target.value);
+    // console.log(evt.target.value);
+    const countryName = evt.target.value;
+    const countryObject = Countries.find(
+      (country) => country.country === countryName
+    );
+    // console.log(countryObject);
+    setSelectedCountry(countryObject);
+  }
+
   return (
     <main>
       <SideBar>
         <header>
-          <nav className="logo">HolyDays</nav>
-          <div className="select-country">
-            <img
-              src="https://flagsapi.com/NG/flat/24.png"
-              alt="Flag of the Federal Republic of Nigeria."
-            />
-            <select>
-              <option>Nigeria</option>
-              <option>United States</option>
-            </select>
-          </div>
+          <Logo />
+          <SelectCountry
+            countries={Countries}
+            selectedCountry={selectedCountry}
+            onSelectCountry={handleSelectCountry}
+          />
         </header>
         <ul className="holiday-list">
           {initialHolidays.map((holiday, idx) => (
@@ -152,6 +165,33 @@ export default function App() {
 
 function SideBar({ children }) {
   return <aside>{children}</aside>;
+}
+
+function Logo() {
+  return <nav className="logo">HolyDays</nav>;
+}
+
+function SelectCountry({ countries, selectedCountry, onSelectCountry }) {
+  return (
+    <div className="select-country">
+      {selectedCountry ? (
+        <img
+          src={`https://flagsapi.com/${selectedCountry?.countryCode}/flat/24.png`}
+          alt={`Flag of ${selectedCountry.country}.`}
+        />
+      ) : (
+        <div />
+      )}
+      <select value={selectedCountry?.country} onChange={onSelectCountry}>
+        <option defaultValue>Select Country</option>
+        {countries.map((country) => (
+          <option key={country.id} name={country.countryCode}>
+            {country.country}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
 }
 
 function MainContent() {
