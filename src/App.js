@@ -120,6 +120,7 @@ export default function App() {
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [holidays, setHolidays] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState(false);
 
   function handleSelectCountry(evt) {
     // setSelectedCountry(evt.target.value);
@@ -139,11 +140,19 @@ export default function App() {
       async function fetchPublicHolidays() {
         const currentYear = new Date().getFullYear();
         try {
+          setIsError(false);
           setIsLoading(true);
-          // console.log(currentYear);
+
+          if (!navigator.onLine) {
+            setHolidays([]);
+            setIsError(true);
+            return;
+          }
+
           const resp = await fetch(
             `https://date.nager.at/api/v3/PublicHolidays/${currentYear}/${selectedCountry.countryCode}`
           );
+          console.log(resp);
           const data = await resp.json();
           // console.log(data);
           setHolidays(data);
@@ -184,6 +193,8 @@ export default function App() {
 
         {isLoading ? (
           <Loader />
+        ) : isError ? (
+          <HolidaysErrorMessage countryName={selectedCountry.country} />
         ) : holidays.length === 0 ? (
           <HolidaysPlaceholder />
         ) : (
@@ -236,6 +247,15 @@ function HolidaysPlaceholder() {
 
 function Loader() {
   return <div className="holidays-placeholder">LOADING ...</div>;
+}
+
+function HolidaysErrorMessage({ countryName }) {
+  return (
+    <div className="holidays-error-message">
+      Unable to load public holidays for {countryName} at this time. Please
+      check your internet connection & try again later
+    </div>
+  );
 }
 
 function HolidaysList({ holidays }) {
