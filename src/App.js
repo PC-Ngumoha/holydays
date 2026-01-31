@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Countries from './countries.json';
 
 const initialHolidays = [
@@ -118,6 +118,8 @@ const initialHolidays = [
 
 export default function App() {
   const [selectedCountry, setSelectedCountry] = useState(null);
+  const [holidays, setHolidays] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   function handleSelectCountry(evt) {
     // setSelectedCountry(evt.target.value);
@@ -130,6 +132,37 @@ export default function App() {
     setSelectedCountry(countryObject);
   }
 
+  //
+
+  useEffect(
+    function () {
+      async function fetchPublicHolidays() {
+        const currentYear = new Date().getFullYear();
+        try {
+          setIsLoading(true);
+          // console.log(currentYear);
+          const resp = await fetch(
+            `https://date.nager.at/api/v3/PublicHolidays/${currentYear}/${selectedCountry.countryCode}`
+          );
+          const data = await resp.json();
+          // console.log(data);
+          setHolidays(data);
+        } catch (err) {
+          console.error(err);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+
+      if (selectedCountry) {
+        fetchPublicHolidays();
+      } else {
+        setHolidays([]);
+      }
+    },
+    [selectedCountry]
+  );
+
   return (
     <main>
       <SideBar>
@@ -141,22 +174,21 @@ export default function App() {
             onSelectCountry={handleSelectCountry}
           />
         </header>
-        <ul className="holiday-list">
-          {initialHolidays.map((holiday, idx) => (
-            <li key={idx}>
-              <h3>{holiday.name}</h3>
-              <span>
-                {
-                  // Convert "2026-01-01" to "January 1"
-                  new Intl.DateTimeFormat(undefined, {
-                    month: 'long',
-                    day: 'numeric',
-                  }).format(new Date(holiday.date))
-                }
-              </span>
-            </li>
-          ))}
-        </ul>
+        {/* {holidays.length === 0 ? (
+          <HolidaysPlaceholder />
+        ) : isLoading ? (
+          <Loader />
+        ) : (
+          <HolidaysList holidays={holidays} />
+        )} */}
+
+        {isLoading ? (
+          <Loader />
+        ) : holidays.length === 0 ? (
+          <HolidaysPlaceholder />
+        ) : (
+          <HolidaysList holidays={holidays} />
+        )}
       </SideBar>
       <MainContent />
     </main>
@@ -191,6 +223,42 @@ function SelectCountry({ countries, selectedCountry, onSelectCountry }) {
         ))}
       </select>
     </div>
+  );
+}
+
+function HolidaysPlaceholder() {
+  return (
+    <div className="holidays-placeholder">
+      Select a country to see it's public holidays!
+    </div>
+  );
+}
+
+function Loader() {
+  return <div className="holidays-placeholder">LOADING ...</div>;
+}
+
+function HolidaysList({ holidays }) {
+  return (
+    <ul className="holiday-list">
+      {holidays.map((holiday, idx) => (
+        <HolidayCard key={idx} holiday={holiday} />
+      ))}
+    </ul>
+  );
+}
+
+function HolidayCard({ holiday }) {
+  const displayedDate = new Intl.DateTimeFormat(undefined, {
+    month: 'long',
+    day: 'numeric',
+  }).format(new Date(holiday.date));
+
+  return (
+    <li>
+      <h3>{holiday.name}</h3>
+      <span>{displayedDate}</span>
+    </li>
   );
 }
 

@@ -93,6 +93,18 @@ aside header {
   outline: none;
 }
 
+.holidays-placeholder {
+  width: 100%;
+  height: 80%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 500;
+  letter-spacing: .25rem;
+  line-height: 3rem;
+  text-align: center;
+}
+
 .holiday-list {
   display: flex;
   flex-direction: column;
