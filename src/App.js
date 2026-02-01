@@ -121,20 +121,23 @@ export default function App() {
   const [holidays, setHolidays] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
+  const [selectedHoliday, setSelectedHoliday] = useState(null);
 
   function handleSelectCountry(evt) {
-    // setSelectedCountry(evt.target.value);
-    // console.log(evt.target.value);
     const countryName = evt.target.value;
     const countryObject = Countries.find(
       (country) => country.country === countryName
     );
-    // console.log(countryObject);
     setSelectedCountry(countryObject);
   }
 
-  //
+  function handleSelectHoliday(id) {
+    const holidayObject = holidays.find((holiday) => holiday.id === id);
+    console.log(holidayObject);
+    setSelectedHoliday(holidayObject);
+  }
 
+  // Effect: Load public holiday info on new country selection.
   useEffect(
     function () {
       async function fetchPublicHolidays() {
@@ -143,6 +146,7 @@ export default function App() {
           setIsError(false);
           setIsLoading(true);
 
+          // Error handling: Reset & raise Error is user is currently offline.
           if (!navigator.onLine) {
             setHolidays([]);
             setIsError(true);
@@ -152,12 +156,14 @@ export default function App() {
           const resp = await fetch(
             `https://date.nager.at/api/v3/PublicHolidays/${currentYear}/${selectedCountry.countryCode}`
           );
-          console.log(resp);
-          const data = await resp.json();
-          // console.log(data);
-          setHolidays(data);
+          let holidays = await resp.json();
+
+          // FIXME: Transform holiday data to include a unique ID for each holiday.
+          holidays = holidays.map((holiday, idx) => ({ ...holiday, id: idx }));
+
+          // console.log(holidays);
+          setHolidays(holidays);
         } catch (err) {
-          console.error(err);
         } finally {
           setIsLoading(false);
         }
@@ -183,14 +189,6 @@ export default function App() {
             onSelectCountry={handleSelectCountry}
           />
         </header>
-        {/* {holidays.length === 0 ? (
-          <HolidaysPlaceholder />
-        ) : isLoading ? (
-          <Loader />
-        ) : (
-          <HolidaysList holidays={holidays} />
-        )} */}
-
         {isLoading ? (
           <Loader />
         ) : isError ? (
@@ -198,10 +196,13 @@ export default function App() {
         ) : holidays.length === 0 ? (
           <HolidaysPlaceholder />
         ) : (
-          <HolidaysList holidays={holidays} />
+          <HolidaysList
+            holidays={holidays}
+            onSelectHoliday={handleSelectHoliday}
+          />
         )}
       </SideBar>
-      <MainContent />
+      <MainContent holiday={selectedHoliday} />
     </main>
   );
 }
@@ -258,82 +259,152 @@ function HolidaysErrorMessage({ countryName }) {
   );
 }
 
-function HolidaysList({ holidays }) {
+function HolidaysList({ holidays, onSelectHoliday }) {
   return (
     <ul className="holiday-list">
-      {holidays.map((holiday, idx) => (
-        <HolidayCard key={idx} holiday={holiday} />
+      {holidays.map((holiday) => (
+        <HolidayCard
+          key={holiday.id}
+          holiday={holiday}
+          onSelectHoliday={onSelectHoliday}
+        />
       ))}
     </ul>
   );
 }
 
-function HolidayCard({ holiday }) {
+function HolidayCard({ holiday, onSelectHoliday }) {
   const displayedDate = new Intl.DateTimeFormat(undefined, {
     month: 'long',
     day: 'numeric',
   }).format(new Date(holiday.date));
 
   return (
-    <li>
+    <li onClick={() => onSelectHoliday(holiday.id)}>
       <h3>{holiday.name}</h3>
       <span>{displayedDate}</span>
     </li>
   );
 }
 
-function MainContent() {
+function MainContent({ holiday }) {
   return (
     <article>
-      <h1>New Year's Day</h1>
-      <div className="date">
-        <svg
-          width="20px"
-          height="20px"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-          <g
-            id="SVGRepo_tracerCarrier"
+      {holiday ? (
+        <>
+          <header>
+            <div className="flag">
+              <img
+                src={`https://flagsapi.com/${holiday.countryCode}/flat/64.png`}
+                alt={`Flag of host country.`}
+              />
+            </div>
+            <h1>{holiday.name}</h1>
+            {holiday.name !== holiday.localName && (
+              <h2>Local Name: {holiday.localName}</h2>
+            )}
+            <DateView date={holiday.date} />
+          </header>
+          <HolidayDescription />
+          <HolidayImage />
+        </>
+      ) : (
+        <ContentPlaceholder />
+      )}
+    </article>
+  );
+}
+
+function DateView({ date }) {
+  const displayedDate = new Intl.DateTimeFormat(undefined, {
+    month: 'long',
+    day: 'numeric',
+  }).format(new Date(date));
+
+  return (
+    <div className="date">
+      <svg
+        width="20px"
+        height="20px"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+        <g
+          id="SVGRepo_tracerCarrier"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        ></g>
+        <g id="SVGRepo_iconCarrier">
+          {' '}
+          <path
+            d="M3 9H21M7 3V5M17 3V5M6 13H8M6 17H8M11 13H13M11 17H13M16 13H18M16 17H18M6.2 21H17.8C18.9201 21 19.4802 21 19.908 20.782C20.2843 20.5903 20.5903 20.2843 20.782 19.908C21 19.4802 21 18.9201 21 17.8V8.2C21 7.07989 21 6.51984 20.782 6.09202C20.5903 5.71569 20.2843 5.40973 19.908 5.21799C19.4802 5 18.9201 5 17.8 5H6.2C5.0799 5 4.51984 5 4.09202 5.21799C3.71569 5.40973 3.40973 5.71569 3.21799 6.09202C3 6.51984 3 7.07989 3 8.2V17.8C3 18.9201 3 19.4802 3.21799 19.908C3.40973 20.2843 3.71569 20.5903 4.09202 20.782C4.51984 21 5.07989 21 6.2 21Z"
+            stroke="#000000"
+            stroke-width="2"
             stroke-linecap="round"
             stroke-linejoin="round"
-          ></g>
-          <g id="SVGRepo_iconCarrier">
+          ></path>{' '}
+        </g>
+      </svg>
+      <span>{displayedDate}</span>
+    </div>
+  );
+}
+
+function ContentPlaceholder() {
+  return (
+    <article className="content-placeholder">
+      <svg
+        version="1.0"
+        id="Layer_1"
+        xmlns="http://www.w3.org/2000/svg"
+        width="150px"
+        height="150px"
+        viewBox="0 0 64 64"
+        enable-background="new 0 0 64 64"
+        fill="#000000"
+      >
+        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+        <g
+          id="SVGRepo_tracerCarrier"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        ></g>
+        <g id="SVGRepo_iconCarrier">
+          {' '}
+          <g>
             {' '}
             <path
-              d="M3 9H21M7 3V5M17 3V5M6 13H8M6 17H8M11 13H13M11 17H13M16 13H18M16 17H18M6.2 21H17.8C18.9201 21 19.4802 21 19.908 20.782C20.2843 20.5903 20.5903 20.2843 20.782 19.908C21 19.4802 21 18.9201 21 17.8V8.2C21 7.07989 21 6.51984 20.782 6.09202C20.5903 5.71569 20.2843 5.40973 19.908 5.21799C19.4802 5 18.9201 5 17.8 5H6.2C5.0799 5 4.51984 5 4.09202 5.21799C3.71569 5.40973 3.40973 5.71569 3.21799 6.09202C3 6.51984 3 7.07989 3 8.2V17.8C3 18.9201 3 19.4802 3.21799 19.908C3.40973 20.2843 3.71569 20.5903 4.09202 20.782C4.51984 21 5.07989 21 6.2 21Z"
-              stroke="#000000"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+              fill="#231F20"
+              d="M60,4h-7V3c0-1.657-1.343-3-3-3s-3,1.343-3,3v1H17V3c0-1.657-1.343-3-3-3s-3,1.343-3,3v1H4 C1.789,4,0,5.789,0,8v52c0,2.211,1.789,4,4,4h56c2.211,0,4-1.789,4-4V8C64,5.789,62.211,4,60,4z M18,53c0,0.553-0.447,1-1,1h-6 c-0.553,0-1-0.447-1-1v-5c0-0.553,0.447-1,1-1h6c0.553,0,1,0.447,1,1V53z M18,42c0,0.553-0.447,1-1,1h-6c-0.553,0-1-0.447-1-1v-5 c0-0.553,0.447-1,1-1h6c0.553,0,1,0.447,1,1V42z M18,31c0,0.553-0.447,1-1,1h-6c-0.553,0-1-0.447-1-1v-5c0-0.553,0.447-1,1-1h6 c0.553,0,1,0.447,1,1V31z M30,53c0,0.553-0.447,1-1,1h-6c-0.553,0-1-0.447-1-1v-5c0-0.553,0.447-1,1-1h6c0.553,0,1,0.447,1,1V53z M30,42c0,0.553-0.447,1-1,1h-6c-0.553,0-1-0.447-1-1v-5c0-0.553,0.447-1,1-1h6c0.553,0,1,0.447,1,1V42z M30,31 c0,0.553-0.447,1-1,1h-6c-0.553,0-1-0.447-1-1v-5c0-0.553,0.447-1,1-1h6c0.553,0,1,0.447,1,1V31z M42,53c0,0.553-0.447,1-1,1h-6 c-0.553,0-1-0.447-1-1v-5c0-0.553,0.447-1,1-1h6c0.553,0,1,0.447,1,1V53z M42,42c0,0.553-0.447,1-1,1h-6c-0.553,0-1-0.447-1-1v-5 c0-0.553,0.447-1,1-1h6c0.553,0,1,0.447,1,1V42z M42,31c0,0.553-0.447,1-1,1h-6c-0.553,0-1-0.447-1-1v-5c0-0.553,0.447-1,1-1h6 c0.553,0,1,0.447,1,1V31z M54,42c0,0.553-0.447,1-1,1h-6c-0.553,0-1-0.447-1-1v-5c0-0.553,0.447-1,1-1h6c0.553,0,1,0.447,1,1V42z M54,31c0,0.553-0.447,1-1,1h-6c-0.553,0-1-0.447-1-1v-5c0-0.553,0.447-1,1-1h6c0.553,0,1,0.447,1,1V31z M62,15H2V8 c0-1.104,0.896-2,2-2h7v4c0,1.657,1.343,3,3,3s3-1.343,3-3V6h30v4c0,1.657,1.343,3,3,3s3-1.343,3-3V6h7c1.104,0,2,0.896,2,2V15z"
             ></path>{' '}
-          </g>
-        </svg>
-        <span>
-          {
-            // Convert "2026-01-01" to "January 1"
-            new Intl.DateTimeFormat(undefined, {
-              month: 'long',
-              day: 'numeric',
-            }).format(new Date('2026-01-01'))
-          }
-        </span>
-      </div>
-
-      <p>
-        Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus
-        ex sapien vitae pellentesque sem placerat. In id cursus mi pretium
-        tellus duis convallis. Tempus leo eu aenean sed diam urna tempor.
-        Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis
-        massa nisl malesuada lacinia integer nunc posuere. Ut hendrerit semper
-        vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra
-        inceptos himenaeos.
-      </p>
-
-      {/* https://i.ibb.co/Vszvz7g/new-year.webp */}
-      <img src="https://i.ibb.co/Vszvz7g/new-year.webp" alt="Image: new year" />
+          </g>{' '}
+        </g>
+      </svg>
+      <span>Select a country and a public holiday to view.</span>
     </article>
+  );
+}
+
+function HolidayDescription() {
+  return (
+    <p>
+      Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus
+      ex sapien vitae pellentesque sem placerat. In id cursus mi pretium tellus
+      duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar
+      vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl
+      malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class
+      aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos
+      himenaeos.
+    </p>
+  );
+}
+
+function HolidayImage() {
+  // https://i.ibb.co/Vszvz7g/new-year.webp
+
+  return (
+    <img src="https://i.ibb.co/Vszvz7g/new-year.webp" alt="Image: new year" />
   );
 }

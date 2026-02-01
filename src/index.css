@@ -137,6 +137,7 @@ aside header {
   color: var(--color-heading-text);
   border-bottom: 1px solid var(--color-border);
   font-size: 1.4rem;
+  cursor: pointer;
 }
 
 .holiday-list li:last-of-type {
@@ -156,17 +157,46 @@ aside header {
 /* MAIN CONTENT */
 
 article {
+  height: 100vh;
   flex: 5;
   padding: 2.3rem 2rem;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  overflow: auto;
+}
+
+article.content-placeholder {
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  letter-spacing: .25rem;
+  line-height: 3rem;
+  text-align: center;
+}
+
+
+article .flag {
+  height: 6.4rem;
+  width: 6.4rem;
+}
+
+article .flag img {
+  height: 100%;
+  width: 100%;
 }
 
 article h1 {
   letter-spacing: .2rem;
   color: var(--color-heading-text);
   margin: 1rem 0;
+}
+
+article h2 {
+  letter-spacing: .2rem;
+  color: var(--color-heading-text);
+  margin: 1rem 0;
+  font-style: italic;
 }
 
 article .date {
