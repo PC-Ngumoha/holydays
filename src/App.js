@@ -296,7 +296,7 @@ function MainContent({ holiday }) {
             <div className="flag">
               <img
                 src={`https://flagsapi.com/${holiday.countryCode}/flat/64.png`}
-                alt={`Flag of host country.`}
+                alt="Flag of host country."
               />
             </div>
             <h1>{holiday.name}</h1>
