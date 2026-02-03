@@ -114,7 +114,13 @@ const initialHolidays = [
   },
 ];
 
-// console.log(Countries.map((country) => country.country));
+// UTILITY FUNCTION
+function getFormattedDate(dateString) {
+  return new Intl.DateTimeFormat(undefined, {
+    month: 'long',
+    day: '2-digit',
+  }).format(new Date(dateString));
+}
 
 export default function App() {
   const [selectedCountry, setSelectedCountry] = useState(null);
@@ -133,7 +139,7 @@ export default function App() {
 
   function handleSelectHoliday(id) {
     const holidayObject = holidays.find((holiday) => holiday.id === id);
-    console.log(holidayObject);
+    // console.log(holidayObject);
     setSelectedHoliday(holidayObject);
   }
 
@@ -163,7 +169,6 @@ export default function App() {
 
           // console.log(holidays);
           setHolidays(holidays);
-        } catch (err) {
         } finally {
           setIsLoading(false);
         }
@@ -276,15 +281,12 @@ function HolidaysList({ holidays, onSelectHoliday, selectedHoliday }) {
 }
 
 function HolidayCard({ holiday, onSelectHoliday, selectedHoliday }) {
-  const displayedDate = new Intl.DateTimeFormat(undefined, {
-    month: 'long',
-    day: 'numeric',
-  }).format(new Date(holiday.date));
+  const displayedDate = getFormattedDate(holiday.date);
 
   return (
     <li
       onClick={() => onSelectHoliday(holiday.id)}
-      className={selectedHoliday.id === holiday.id ? 'selected' : ''}
+      className={selectedHoliday?.id === holiday.id ? 'selected' : ''}
     >
       <h3>{holiday.name}</h3>
       <span>{displayedDate}</span>
@@ -326,10 +328,7 @@ function MainContent({ holiday, country }) {
 }
 
 function DateView({ date }) {
-  const displayedDate = new Intl.DateTimeFormat(undefined, {
-    month: 'long',
-    day: 'numeric',
-  }).format(new Date(date));
+  const displayedDate = getFormattedDate(date);
 
   return (
     <div className="date">
@@ -416,10 +415,10 @@ function HolidayDescription({ holiday, country }) {
         );
         const data = await response.json();
 
-        console.log(data);
+        // console.log(data);
         setDescription(data.Response);
       } catch (error) {
-        console.error(error);
+        // console.error(error);
         setIsError(true);
       } finally {
         setIsLoading(false);
