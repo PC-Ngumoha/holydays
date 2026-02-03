@@ -202,7 +202,7 @@ export default function App() {
           />
         )}
       </SideBar>
-      <MainContent holiday={selectedHoliday} />
+      <MainContent holiday={selectedHoliday} country={selectedCountry} />
     </main>
   );
 }
@@ -287,7 +287,7 @@ function HolidayCard({ holiday, onSelectHoliday }) {
   );
 }
 
-function MainContent({ holiday }) {
+function MainContent({ holiday, country }) {
   return (
     <article>
       {holiday ? (
@@ -305,7 +305,12 @@ function MainContent({ holiday }) {
             )}
             <DateView date={holiday.date} />
           </header>
-          <HolidayDescription />
+          {/*Adding a key causes React to destroy and rebuild the component when attached key changes. */}
+          <HolidayDescription
+            holiday={holiday}
+            country={country}
+            key={holiday.id}
+          />
           <HolidayImage />
         </>
       ) : (
@@ -387,16 +392,20 @@ function ContentPlaceholder() {
   );
 }
 
-function HolidayDescription() {
+function HolidayDescription({ holiday, country }) {
   const [description, setDescription] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  /* FIXME: Running useEffect hook twice during strict mode causes
+     the fetch API to send a GET request to API endpoint causing the
+     AI-generated description to change. This creates a bad User Experience.
+  */
   useEffect(function () {
     async function fetchDescription() {
       try {
         setIsLoading(true);
         const response = await fetch(
-          'http://localhost:8000/countries/Nigeria/holidays/Easter'
+          `http://localhost:8000/countries/${country.country}/holidays/${holiday.name}`
         );
         const data = await response.json();
 
