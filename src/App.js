@@ -388,17 +388,29 @@ function ContentPlaceholder() {
 }
 
 function HolidayDescription() {
-  return (
-    <p>
-      Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus
-      ex sapien vitae pellentesque sem placerat. In id cursus mi pretium tellus
-      duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar
-      vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl
-      malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class
-      aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos
-      himenaeos.
-    </p>
-  );
+  const [description, setDescription] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(function () {
+    async function fetchDescription() {
+      try {
+        setIsLoading(true);
+        const response = await fetch(
+          'http://localhost:8000/countries/Nigeria/holidays/Easter'
+        );
+        const data = await response.json();
+
+        console.log(data);
+        setDescription(data.Response);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchDescription();
+  }, []);
+
+  return <>{isLoading ? <Loader /> : <p>{description}</p>}</>;
 }
 
 function HolidayImage() {
