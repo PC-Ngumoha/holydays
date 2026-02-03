@@ -149,6 +149,11 @@ aside header {
   transition: all .2s ease-in-out;
 }
 
+.holiday-list li.selected {
+  background-color: var(--color-bg-accent);
+  font-style: italic;
+}
+
 .holiday-list h3 {
   color: var(--color-regular-text);
   letter-spacing: .15rem;

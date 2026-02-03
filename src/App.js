@@ -199,6 +199,7 @@ export default function App() {
           <HolidaysList
             holidays={holidays}
             onSelectHoliday={handleSelectHoliday}
+            selectedHoliday={selectedHoliday}
           />
         )}
       </SideBar>
@@ -259,7 +260,7 @@ function HolidaysErrorMessage({ countryName }) {
   );
 }
 
-function HolidaysList({ holidays, onSelectHoliday }) {
+function HolidaysList({ holidays, onSelectHoliday, selectedHoliday }) {
   return (
     <ul className="holiday-list">
       {holidays.map((holiday) => (
@@ -267,20 +268,24 @@ function HolidaysList({ holidays, onSelectHoliday }) {
           key={holiday.id}
           holiday={holiday}
           onSelectHoliday={onSelectHoliday}
+          selectedHoliday={selectedHoliday}
         />
       ))}
     </ul>
   );
 }
 
-function HolidayCard({ holiday, onSelectHoliday }) {
+function HolidayCard({ holiday, onSelectHoliday, selectedHoliday }) {
   const displayedDate = new Intl.DateTimeFormat(undefined, {
     month: 'long',
     day: 'numeric',
   }).format(new Date(holiday.date));
 
   return (
-    <li onClick={() => onSelectHoliday(holiday.id)}>
+    <li
+      onClick={() => onSelectHoliday(holiday.id)}
+      className={selectedHoliday.id === holiday.id ? 'selected' : ''}
+    >
       <h3>{holiday.name}</h3>
       <span>{displayedDate}</span>
     </li>
@@ -395,6 +400,7 @@ function ContentPlaceholder() {
 function HolidayDescription({ holiday, country }) {
   const [description, setDescription] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState(false);
 
   /* FIXME: Running useEffect hook twice during strict mode causes
      the fetch API to send a GET request to API endpoint causing the
@@ -403,6 +409,7 @@ function HolidayDescription({ holiday, country }) {
   useEffect(function () {
     async function fetchDescription() {
       try {
+        setIsError(false);
         setIsLoading(true);
         const response = await fetch(
           `http://localhost:8000/countries/${country.country}/holidays/${holiday.name}`
@@ -411,6 +418,9 @@ function HolidayDescription({ holiday, country }) {
 
         console.log(data);
         setDescription(data.Response);
+      } catch (error) {
+        console.error(error);
+        setIsError(true);
       } finally {
         setIsLoading(false);
       }
@@ -419,7 +429,29 @@ function HolidayDescription({ holiday, country }) {
     fetchDescription();
   }, []);
 
-  return <>{isLoading ? <Loader /> : <p>{description}</p>}</>;
+  return (
+    <>
+      {isLoading ? (
+        <Loader />
+      ) : isError ? (
+        <HolidayDescriptionErrorMessage
+          holidayName={holiday.name}
+          countryName={country.country}
+        />
+      ) : (
+        <p>{description}</p>
+      )}
+    </>
+  );
+}
+
+function HolidayDescriptionErrorMessage({ holidayName, countryName }) {
+  return (
+    <div className="holidays-error-message">
+      Currently unable to load description of {holidayName} holiday for{' '}
+      {countryName}. Please try again.
+    </div>
+  );
 }
 
 function HolidayImage() {
