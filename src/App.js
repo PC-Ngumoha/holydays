@@ -1,118 +1,6 @@
 import { useState, useEffect } from 'react';
 import Countries from './countries.json';
-
-const initialHolidays = [
-  {
-    date: '2026-01-01',
-    localName: "New Year's Day",
-    name: "New Year's Day",
-    countryCode: 'NG',
-    fixed: false,
-    global: true,
-    counties: null,
-    launchYear: null,
-    types: ['Public'],
-  },
-  {
-    date: '2026-04-03',
-    localName: 'Good Friday',
-    name: 'Good Friday',
-    countryCode: 'NG',
-    fixed: false,
-    global: true,
-    counties: null,
-    launchYear: null,
-    types: ['Public'],
-  },
-  {
-    date: '2026-04-06',
-    localName: 'Easter Monday',
-    name: 'Easter Monday',
-    countryCode: 'NG',
-    fixed: false,
-    global: true,
-    counties: null,
-    launchYear: null,
-    types: ['Public'],
-  },
-  {
-    date: '2026-05-01',
-    localName: "Workers' Day",
-    name: "Workers' Day",
-    countryCode: 'NG',
-    fixed: false,
-    global: true,
-    counties: null,
-    launchYear: null,
-    types: ['Public'],
-  },
-  {
-    date: '2026-05-27',
-    localName: "Children's Day",
-    name: "Children's Day",
-    countryCode: 'NG',
-    fixed: false,
-    global: true,
-    counties: null,
-    launchYear: null,
-    types: ['Public'],
-  },
-  {
-    date: '2026-06-12',
-    localName: 'Democracy Day',
-    name: 'Democracy Day',
-    countryCode: 'NG',
-    fixed: false,
-    global: true,
-    counties: null,
-    launchYear: null,
-    types: ['Public'],
-  },
-  {
-    date: '2026-10-01',
-    localName: 'National Day',
-    name: 'National Day',
-    countryCode: 'NG',
-    fixed: false,
-    global: true,
-    counties: null,
-    launchYear: null,
-    types: ['Public'],
-  },
-  {
-    date: '2026-11-01',
-    localName: 'National Youth Day',
-    name: 'National Youth Day',
-    countryCode: 'NG',
-    fixed: false,
-    global: true,
-    counties: null,
-    launchYear: null,
-    types: ['Public'],
-  },
-  {
-    date: '2026-12-25',
-    localName: 'Christmas Day',
-    name: 'Christmas Day',
-    countryCode: 'NG',
-    fixed: false,
-    global: true,
-    counties: null,
-    launchYear: null,
-    types: ['Public'],
-  },
-  {
-    date: '2026-12-28',
-    localName: 'Boxing Day',
-    name: 'Boxing Day',
-    countryCode: 'NG',
-    fixed: false,
-    global: true,
-    counties: null,
-    launchYear: null,
-    types: ['Public'],
-  },
-];
+import { Logo, SideBar, SelectCountry, Loader } from './components';
 
 // UTILITY FUNCTION
 function getFormattedDate(dateString) {
@@ -139,11 +27,9 @@ export default function App() {
 
   function handleSelectHoliday(id) {
     const holidayObject = holidays.find((holiday) => holiday.id === id);
-    // console.log(holidayObject);
     setSelectedHoliday(holidayObject);
   }
 
-  // Effect: Load public holiday info on new country selection.
   useEffect(
     function () {
       async function fetchPublicHolidays() {
@@ -164,9 +50,11 @@ export default function App() {
           );
           let holidays = await resp.json();
 
-          // FIXME: Transform holiday data to include a unique ID for each holiday.
-          holidays = holidays.map((holiday, idx) => ({ ...holiday, id: idx }));
-
+          // Transform holiday data to include a unique ID for each holiday.
+          holidays = holidays.map((holiday, idx) => ({
+            ...holiday,
+            id: crypto.randomUUID(),
+          }));
           // console.log(holidays);
           setHolidays(holidays);
         } finally {
@@ -213,47 +101,12 @@ export default function App() {
   );
 }
 
-function SideBar({ children }) {
-  return <aside>{children}</aside>;
-}
-
-function Logo() {
-  return <nav className="logo">HolyDays</nav>;
-}
-
-function SelectCountry({ countries, selectedCountry, onSelectCountry }) {
-  return (
-    <div className="select-country">
-      {selectedCountry ? (
-        <img
-          src={`https://flagsapi.com/${selectedCountry?.countryCode}/flat/24.png`}
-          alt={`Flag of ${selectedCountry.country}.`}
-        />
-      ) : (
-        <div />
-      )}
-      <select value={selectedCountry?.country} onChange={onSelectCountry}>
-        <option defaultValue>Select Country</option>
-        {countries.map((country) => (
-          <option key={country.id} name={country.countryCode}>
-            {country.country}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
-}
-
 function HolidaysPlaceholder() {
   return (
     <div className="holidays-placeholder">
       Select a country to see it's public holidays!
     </div>
   );
-}
-
-function Loader() {
-  return <div className="holidays-placeholder">LOADING ...</div>;
 }
 
 function HolidaysErrorMessage({ countryName }) {
@@ -312,13 +165,16 @@ function MainContent({ holiday, country }) {
             )}
             <DateView date={holiday.date} />
           </header>
-          {/*Adding a key causes React to destroy and rebuild the component when attached key changes. */}
-          <HolidayDescription
+
+          {/*
+            Attaching a key causes React to destroy and rebuild the
+            component when attached key changes.
+            */}
+          <HolidayDetails
             holiday={holiday}
             country={country}
             key={holiday.id}
           />
-          <HolidayImage />
         </>
       ) : (
         <ContentPlaceholder />
@@ -339,20 +195,20 @@ function DateView({ date }) {
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
-        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+        <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
         <g
           id="SVGRepo_tracerCarrier"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         ></g>
         <g id="SVGRepo_iconCarrier">
           {' '}
           <path
             d="M3 9H21M7 3V5M17 3V5M6 13H8M6 17H8M11 13H13M11 17H13M16 13H18M16 17H18M6.2 21H17.8C18.9201 21 19.4802 21 19.908 20.782C20.2843 20.5903 20.5903 20.2843 20.782 19.908C21 19.4802 21 18.9201 21 17.8V8.2C21 7.07989 21 6.51984 20.782 6.09202C20.5903 5.71569 20.2843 5.40973 19.908 5.21799C19.4802 5 18.9201 5 17.8 5H6.2C5.0799 5 4.51984 5 4.09202 5.21799C3.71569 5.40973 3.40973 5.71569 3.21799 6.09202C3 6.51984 3 7.07989 3 8.2V17.8C3 18.9201 3 19.4802 3.21799 19.908C3.40973 20.2843 3.71569 20.5903 4.09202 20.782C4.51984 21 5.07989 21 6.2 21Z"
             stroke="#000000"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           ></path>{' '}
         </g>
       </svg>
@@ -371,14 +227,14 @@ function ContentPlaceholder() {
         width="150px"
         height="150px"
         viewBox="0 0 64 64"
-        enable-background="new 0 0 64 64"
+        enableBackground="new 0 0 64 64"
         fill="#000000"
       >
-        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+        <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
         <g
           id="SVGRepo_tracerCarrier"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         ></g>
         <g id="SVGRepo_iconCarrier">
           {' '}
@@ -396,8 +252,9 @@ function ContentPlaceholder() {
   );
 }
 
-function HolidayDescription({ holiday, country }) {
+function HolidayDetails({ holiday, country }) {
   const [description, setDescription] = useState('');
+  const [imageData, setImageData] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
 
@@ -406,26 +263,31 @@ function HolidayDescription({ holiday, country }) {
      AI-generated description to change. This creates a bad User Experience.
   */
   useEffect(function () {
-    async function fetchDescription() {
+    const descriptionURL = `http://localhost:8000/countries/${country.country}/holidays/${holiday.name}`;
+    const imageURL = `http://localhost:8000/image/countries/${country.country}/holidays/${holiday.name}`;
+
+    async function fetchDetails() {
       try {
         setIsError(false);
         setIsLoading(true);
-        const response = await fetch(
-          `http://localhost:8000/countries/${country.country}/holidays/${holiday.name}`
-        );
-        const data = await response.json();
 
-        // console.log(data);
+        let response, data;
+
+        response = await fetch(descriptionURL);
+        data = await response.json();
         setDescription(data.Response);
+
+        response = await fetch(imageURL);
+        data = await response.json();
+        setImageData(data.results.at(0));
       } catch (error) {
-        // console.error(error);
         setIsError(true);
       } finally {
         setIsLoading(false);
       }
     }
 
-    fetchDescription();
+    fetchDetails();
   }, []);
 
   return (
@@ -433,30 +295,39 @@ function HolidayDescription({ holiday, country }) {
       {isLoading ? (
         <Loader />
       ) : isError ? (
-        <HolidayDescriptionErrorMessage
-          holidayName={holiday.name}
-          countryName={country.country}
-        />
+        <HolidaysErrorMessage />
       ) : (
-        <p>{description}</p>
+        <>
+          <Description description={description} />
+          <DisplayImage imageData={imageData} />
+        </>
       )}
     </>
   );
 }
 
-function HolidayDescriptionErrorMessage({ holidayName, countryName }) {
-  return (
-    <div className="holidays-error-message">
-      Currently unable to load description of {holidayName} holiday for{' '}
-      {countryName}. Please try again.
-    </div>
-  );
+function Description({ description }) {
+  return <p>{description}</p>;
 }
 
-function HolidayImage() {
+function DisplayImage({ imageData }) {
   // https://i.ibb.co/Vszvz7g/new-year.webp
 
   return (
-    <img src="https://i.ibb.co/Vszvz7g/new-year.webp" alt="Image: new year" />
+    <figure>
+      <img src={imageData?.urls?.regular} alt={imageData?.slug} />
+      <figcaption>
+        Photo by{' '}
+        <a
+          href={`https://unsplash.com/@${imageData?.user?.username}?utm_source=HolyDays&utm_medium=referral`}
+        >
+          {imageData?.user?.name}
+        </a>{' '}
+        on{' '}
+        <a href="https://unsplash.com/?utm_source=HolyDays&utm_medium=referral">
+          Unsplash
+        </a>
+      </figcaption>
+    </figure>
   );
 }

@@ -224,3 +224,17 @@ article img {
   border-radius: 1rem;
 }
 
+article figcaption {
+  padding: 2rem;
+  font-style: italic;
+  font-size: 1.3rem;
+  letter-spacing: .15rem;
+  color: var(--color-regular-text);
+}
+
+article figcaption a {
+  color: var(--color-heading-text);
+  font-weight: 500;
+  font-size: 1.5rem;
+}
+
